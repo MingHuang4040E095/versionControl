@@ -31,10 +31,29 @@ var SomeModelSchema = new Schema({
 // 這邊的files是資料表名稱
 var SomeModel = mongoose.model('files', SomeModelSchema)
 
+//----------------- 雜湊函數 ------------------------
+const bcrypt = require('bcryptjs')
+const salt = bcrypt.genSaltSync(10)
+
+function hashHandle(text) {
+    let hash = bcrypt.hashSync(text, salt)
+    return hash
+}
+
 //------------------ multer 上傳檔案 ----------------------
 
 //npm i multer
 const multer = require('multer')
+const storage = multer.diskStorage({
+    // 設定檔案存取位置
+    destination: './uploadImage/',
+    // 設定檔案命名方式
+    filename: function (req, file, cb) {
+        let hashName = hashHandle(file.originalname)
+        console.log(file.originalname)
+        cb(null, file.originalname)
+    },
+})
 const upload = multer({
     limits: {
         // 限制上傳檔案的大小為 5MB(5000000)
@@ -48,6 +67,7 @@ const upload = multer({
         }
         cb(null, true)
     },
+    // storage,
 }).single('file') //接收單一檔案
 // .array('file',12) //最多接收12個名為file的檔案
 // .fields([{ name: 'avatar', maxCount: 1 }, { name: 'gallery', maxCount: 8 }]) //接收名為 avatar 和 gallery 欄位的檔案，分別接受最多 1 個和 8 個檔案
