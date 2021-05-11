@@ -1,7 +1,5 @@
 const express = require('express')
 const app = express()
-const fs = require('fs')
-const path = require('path')
 var history = require('connect-history-api-fallback')
 app.use(history())
 
@@ -22,7 +20,7 @@ var Schema = mongoose.Schema
 
 var SomeModelSchema = new Schema({
     name: { type: String, required: true }, //檔名
-    binary: { type: Buffer, required: true }, //圖片檔
+    binary: { type: Buffer }, //圖片檔
     size: { type: Number, required: true }, //檔案大小
     type: { type: String, required: true }, //檔案類型
     dateUpload: { type: Date, required: true }, //上傳時間
@@ -40,24 +38,37 @@ function hashHandle(text) {
     return hash
 }
 
+//------------------ 刪除檔案 ----------------------------
+const fs = require('fs')
+const path = require('path')
+function deleteFile(url, name) {}
+
 //------------------ multer 上傳檔案 ----------------------
 
 //npm i multer
 const multer = require('multer')
-const storage = multer.diskStorage({
-    // 設定檔案存取位置
-    destination: './uploadImage/',
+let storage = multer.diskStorage({
+    // // 設定檔案存取位置
+    // destination: './uploadImage/',
     // 設定檔案命名方式
+    // filename: function (req, file, cb) {
+    //     // let hashName = hashHandle(file.originalname)
+    //     console.log(file.originalname)
+    //     cb(null, file.originalname)
+    // },
+
+    destination: './uploadImage/',
     filename: function (req, file, cb) {
-        let hashName = hashHandle(file.originalname)
-        console.log(file.originalname)
+        console.log(file)
+        console.log(new Date())
         cb(null, file.originalname)
     },
 })
-const upload = multer({
+let upload = multer({
+    // dest: 'uploadImage/',
     limits: {
         // 限制上傳檔案的大小為 5MB(5000000)
-        fileSize: 100000, //100kb
+        fileSize: 5000000, //5MB
     },
     fileFilter(req, file, cb) {
         // 只接受三種圖片格式
@@ -67,7 +78,7 @@ const upload = multer({
         }
         cb(null, true)
     },
-    // storage,
+    storage,
 }).single('file') //接收單一檔案
 // .array('file',12) //最多接收12個名為file的檔案
 // .fields([{ name: 'avatar', maxCount: 1 }, { name: 'gallery', maxCount: 8 }]) //接收名為 avatar 和 gallery 欄位的檔案，分別接受最多 1 個和 8 個檔案
