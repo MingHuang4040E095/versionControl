@@ -57,7 +57,10 @@ let storage = multer.diskStorage({
     //     cb(null, file.originalname)
     // },
 
-    destination: './uploadImage/',
+    destination: function (req, file, cb) {
+        console.log(req)
+        cb(null, './uploadImage/')
+    },
     filename: function (req, file, cb) {
         console.log(file)
         console.log(new Date())
