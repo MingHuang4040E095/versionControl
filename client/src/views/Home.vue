@@ -40,6 +40,9 @@
                             {{ moment(item.dateUpload).format('YYYY-MM-DD HH:mm:ss') }}
                         </td>
                         <td>
+                            <v-icon small class="mr-2" @click="imageDownload(item)">
+                                mdi-download
+                            </v-icon>
                             <v-icon small class="mr-2" @click="imageEdit(item)">
                                 mdi-pencil
                             </v-icon>
@@ -154,6 +157,24 @@ export default {
                     this.messageText = status ? '刪除成功' : '刪除失敗'
                     status ? this.imagesList() : null
                 })
+        },
+        //下載檔案
+        imageDownload(file) {
+            this.$http
+                .get(`/imageDownload/_id=${file._id}`, { responseType: 'blob' })
+                .then((res) => {
+                    console.log(res)
+                    const a = document.createElement('a')
+                    const url = URL.createObjectURL(res.formData)
+                    a.download = file.name
+                    a.href = url
+                    a.click()
+                    setTimeout(() => URL.revokeObjectURL(url), 5000)
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
+                .finally(() => {})
         },
         initialize(value) {
             console.log(value)

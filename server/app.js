@@ -38,7 +38,7 @@ function hashHandle(text) {
     let hash = bcrypt.hashSync(text, salt)
     return hash
 }
-
+//------------------ multer 上傳檔案 ----------------------
 //npm i multer
 const multer = require('multer')
 let storage = multer.diskStorage({
@@ -63,6 +63,7 @@ let storage = multer.diskStorage({
         cb(null, Date.now() + '-' + file.originalname)
     },
 })
+
 let upload = multer({
     // dest: 'uploadImage/',
     limits: {
@@ -151,8 +152,6 @@ function deleteFile(url, name) {
     return status
 }
 
-//------------------ multer 上傳檔案 ----------------------
-
 //刪除圖片
 app.delete('/imageDelete', function (req, res) {
     // query: { _id: '6096a5f15c003b43e0f4234b' },
@@ -166,12 +165,13 @@ app.delete('/imageDelete', function (req, res) {
         if (fileID && fileName) {
             //如果fileID && fileName都有拿到
             SomeModel.deleteOne({ _id: fileID }, function (err, result) {
-                res.json({
-                    status: err ? false : true,
-                })
+                let deleteStatus = false
                 if (!err) {
-                    deleteFile('./uploadImage/', fileName)
+                    deleteStatus = deleteFile('./uploadImage/', fileName)
                 }
+                res.json({
+                    status: deleteStatus ? false : true,
+                })
             })
         } else {
             //刪除失敗
@@ -179,5 +179,18 @@ app.delete('/imageDelete', function (req, res) {
                 status: false,
             })
         }
+    })
+})
+
+//下載檔案
+app.get('/imageDownload/_id=:_id', function (req, res) {
+    let _id = req.params._id
+    SomeModel.findOne({ _id: _id }).exec(function (err, result) {
+        let fileName = result.fileName
+        if (fileName) {
+            const file = `${__dirname}/uploadImage/${fileName}`
+            res.download(file)
+        }
+        console.log(result)
     })
 })
