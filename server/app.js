@@ -20,6 +20,7 @@ var Schema = mongoose.Schema
 
 var SomeModelSchema = new Schema({
     name: { type: String, required: true }, //檔名
+    fileName: { type: String, required: true }, //加時戳檔名
     binary: { type: Buffer }, //圖片檔
     size: { type: Number, required: true }, //檔案大小
     type: { type: String, required: true }, //檔案類型
@@ -37,13 +38,6 @@ function hashHandle(text) {
     let hash = bcrypt.hashSync(text, salt)
     return hash
 }
-
-//------------------ 刪除檔案 ----------------------------
-const fs = require('fs')
-const path = require('path')
-function deleteFile(url, name) {}
-
-//------------------ multer 上傳檔案 ----------------------
 
 //npm i multer
 const multer = require('multer')
@@ -64,7 +58,9 @@ let storage = multer.diskStorage({
     filename: function (req, file, cb) {
         console.log(file)
         console.log(new Date())
-        cb(null, file.originalname)
+        let hashName = hashHandle(file.originalname)
+        console.log(hashName)
+        cb(null, Date.now() + '-' + file.originalname)
     },
 })
 let upload = multer({
@@ -98,7 +94,6 @@ app.listen(3000, () => {
 
 //查詢圖片
 app.get('/imagesList/page=:page&limit=:limit', function (req, res) {
-    console.log(req.params)
     // let {page,limit} = req.params
     let page = Number(req.params.page) //當前頁數
     let limit = Number(req.params.limit) //一頁要顯示幾筆
@@ -116,8 +111,10 @@ app.get('/imagesList/page=:page&limit=:limit', function (req, res) {
 
 //上傳圖片
 app.post('/imageUpload', upload, function (req, res) {
+    console.log(res)
     SomeModel({
         name: req.file.originalname, //檔名
+        fileName: req.file.filename, //加時戳檔名
         binary: req.file.buffer, //圖片
         size: req.file.size, //檔案大小
         type: req.file.mimetype, //檔案類型
@@ -130,13 +127,57 @@ app.post('/imageUpload', upload, function (req, res) {
     })
 })
 
+//------------------ 刪除檔案 ----------------------------
+const fs = require('fs')
+const path = require('path')
+function deleteFile(url, name) {
+    let files = []
+    let status = false //狀態
+    if (fs.existsSync(url)) {
+        //有找到路徑
+        files = fs.readdirSync(url) //取得底下文件
+        console.log(files)
+        files.forEach((file) => {
+            let curPath = path.join(url, file)
+            if (file.indexOf(name) > -1) {
+                //是指定文件，則刪除
+                fs.unlinkSync(curPath)
+                status = true
+            }
+        })
+    } else {
+        console.log('路徑不存在!!')
+    }
+    return status
+}
+
+//------------------ multer 上傳檔案 ----------------------
+
 //刪除圖片
 app.delete('/imageDelete', function (req, res) {
-    console.log(req.query)
     // query: { _id: '6096a5f15c003b43e0f4234b' },
-    SomeModel.deleteOne({ _id: req.query._id }, function (err, result) {
-        res.json({
-            status: err ? false : true,
-        })
+
+    let fileID = ''
+    let fileName = ''
+    SomeModel.findOne({ _id: req.query._id }).exec(function (err, result) {
+        console.log(result)
+        fileID = result._id
+        fileName = result.fileName
+        if (fileID && fileName) {
+            //如果fileID && fileName都有拿到
+            SomeModel.deleteOne({ _id: fileID }, function (err, result) {
+                res.json({
+                    status: err ? false : true,
+                })
+                if (!err) {
+                    deleteFile('./uploadImage/', fileName)
+                }
+            })
+        } else {
+            //刪除失敗
+            res.json({
+                status: false,
+            })
+        }
     })
 })
