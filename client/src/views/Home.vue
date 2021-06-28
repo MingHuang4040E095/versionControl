@@ -43,6 +43,26 @@
                             <v-icon small class="mr-2" @click="imageDownload(item)">
                                 mdi-download
                             </v-icon>
+
+                            <v-dialog transition="dialog-top-transition" max-width="600">
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-icon small class="mr-2" v-bind="attrs" v-on="on">
+                                        mdi-format-list-bulleted
+                                    </v-icon>
+                                </template>
+                                <template v-slot:default="dialog">
+                                    <v-card>
+                                        <v-toolbar color="primary" dark>檔案版本清單</v-toolbar>
+                                        <v-card-text>
+                                            <div class="text-h2 pa-12">Hello world!</div>
+                                        </v-card-text>
+                                        <v-card-actions class="justify-end">
+                                            <v-btn text @click="dialog.value = false">Close</v-btn>
+                                        </v-card-actions>
+                                    </v-card>
+                                </template>
+                            </v-dialog>
+
                             <v-icon small class="mr-2" @click="imageEdit(item)">
                                 mdi-pencil
                             </v-icon>
@@ -160,16 +180,20 @@ export default {
         },
         //下載檔案
         imageDownload(file) {
+            //回傳格式設定為 blob
             this.$http
                 .get(`/imageDownload/_id=${file._id}`, { responseType: 'blob' })
                 .then((res) => {
                     console.log(res)
-                    const a = document.createElement('a')
-                    const url = URL.createObjectURL(res.formData)
+                    let a = document.createElement('a')
+                    let url = URL.createObjectURL(res.data)
                     a.download = file.name
                     a.href = url
                     a.click()
-                    setTimeout(() => URL.revokeObjectURL(url), 5000)
+                    setTimeout(() => {
+                        URL.revokeObjectURL(url)
+                        a.remove()
+                    }, 5000)
                 })
                 .catch((err) => {
                     console.log(err)

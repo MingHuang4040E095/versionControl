@@ -170,7 +170,7 @@ app.delete('/imageDelete', function (req, res) {
                     deleteStatus = deleteFile('./uploadImage/', fileName)
                 }
                 res.json({
-                    status: deleteStatus ? false : true,
+                    status: deleteStatus ? true : false,
                 })
             })
         } else {
