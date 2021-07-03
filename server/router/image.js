@@ -24,18 +24,11 @@ const cmd = require('node-cmd') //https://www.npmjs.com/package/node-cmd
 const multer = require('multer')
 let storage = multer.diskStorage({
     // // 設定檔案存取位置
-    // destination: './uploadImage/',
-    // 設定檔案命名方式
-    // filename: function (req, file, cb) {
-    //     // let hashName = hashHandle(file.originalname)
-    //     console.log(file.originalname)
-    //     cb(null, file.originalname)
-    // },
-
     destination: function (req, file, cb) {
         console.log(req)
         cb(null, './uploadImage/fileRepository/')
     },
+    // 設定檔案命名方式
     filename: function (req, file, cb) {
         // Date.now() + '-' +
         cb(null, file.originalname)
@@ -61,7 +54,7 @@ let upload = multer({
 // .array('file',12) //最多接收12個名為file的檔案
 // .fields([{ name: 'avatar', maxCount: 1 }, { name: 'gallery', maxCount: 8 }]) //接收名為 avatar 和 gallery 欄位的檔案，分別接受最多 1 個和 8 個檔案
 
-//查詢圖片
+//------------------------- 查詢圖片 ------------------------------------
 router.get('/list/page=:page&limit=:limit', function (req, res) {
     // let {page,limit} = req.params
     let page = Number(req.params.page) //當前頁數
@@ -78,7 +71,7 @@ router.get('/list/page=:page&limit=:limit', function (req, res) {
         })
 })
 
-//上傳圖片
+//----------------------- 上傳圖片 ------------------------------------
 // app.post('/imageUpload', upload, function (req, res) {
 router.post('/upload', upload, function (req, res) {
     //先去找是否有相同檔名
@@ -96,10 +89,14 @@ router.post('/upload', upload, function (req, res) {
     }).save(function (err, result) {
         console.log(result)
         if (!err) {
-            const gitLog = cmd.runSync('cd ./uploadImage/fileRepository/ & git log')
-            // const gitAdd = cmd.runSync('cd ./uploadImage/fileRepository/ & git add .')
-            // const gitCommit = cmd.runSync(`cd ./uploadImage/fileRepository/ & git commit -m ""`)
-            console.log(gitLog)
+            const gitAdd = cmd.runSync('cd ../uploadImage/fileRepository/ & git add .')
+            const gitCommit = cmd.runSync(
+                `cd ../uploadImage/fileRepository/ & git commit -m "${result._id}-${result.name}"`
+            )
+            const gitLog = cmd.runSync('cd ../uploadImage/fileRepository/ & git log')
+            console.log(gitLog.data)
+            console.log(gitAdd.data)
+            console.log(gitCommit.data)
         }
         res.json({
             status: err ? false : true,
