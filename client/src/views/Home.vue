@@ -135,9 +135,10 @@ export default {
         imageUpload() {
             let status = false
             let formData = new FormData()
+            console.log(this.file)
             formData.append('file', this.file)
             this.$http
-                .post('/imageUpload', formData, {
+                .post('/image/upload', formData, {
                     'Content-Type': 'multipart/form-data',
                 })
                 .then((res) => {
@@ -161,7 +162,7 @@ export default {
             console.log(file)
             let status = false
             this.$http
-                .delete('/imageDelete', {
+                .delete('/image/delete', {
                     params: {
                         _id: file._id,
                     },
@@ -182,7 +183,7 @@ export default {
         imageDownload(file) {
             //回傳格式設定為 blob
             this.$http
-                .get(`/imageDownload/_id=${file._id}`, { responseType: 'blob' })
+                .get(`/image/download/_id=${file._id}`, { responseType: 'blob' })
                 .then((res) => {
                     console.log(res)
                     let a = document.createElement('a')
@@ -205,7 +206,7 @@ export default {
         },
 
         imagesList(page = 1, limit = 5) {
-            this.$http.get(`/imagesList/page=${page}&limit=${limit}`).then((res) => {
+            this.$http.get(`/image/list/page=${page}&limit=${limit}`).then((res) => {
                 console.log(res)
 
                 this.fileList = res.data.data
