@@ -33,6 +33,7 @@
                 <tbody>
                     <tr v-for="item in fileList" :key="item._id">
                         <td>{{ item.name }}</td>
+                        <td>{{ item.versionNumber }}</td>
                         <td>{{ item.size / 1000 }}</td>
                         <td>{{ item.type }}</td>
                         <td>{{ item.dateUpdated }}</td>
@@ -107,6 +108,7 @@ export default {
                     sortable: false,
                     value: 'name',
                 },
+                { text: '版本號', value: 'versionNumber' },
                 { text: '檔案大小 (kB)', value: 'size' },
                 { text: '檔案類型', value: 'type' },
                 { text: '更新日期', value: 'dateUpdated' },

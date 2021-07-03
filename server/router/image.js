@@ -26,7 +26,7 @@ let storage = multer.diskStorage({
     // // 設定檔案存取位置
     destination: function (req, file, cb) {
         console.log(req)
-        cb(null, './uploadImage/fileRepository/')
+        cb(null, './uploadImage/')
     },
     // 設定檔案命名方式
     filename: function (req, file, cb) {
@@ -53,6 +53,17 @@ let upload = multer({
 }).single('file') //接收單一檔案
 // .array('file',12) //最多接收12個名為file的檔案
 // .fields([{ name: 'avatar', maxCount: 1 }, { name: 'gallery', maxCount: 8 }]) //接收名為 avatar 和 gallery 欄位的檔案，分別接受最多 1 個和 8 個檔案
+
+function gitCommit(type, result) {
+    const gitAdd = cmd.runSync('cd ${__dirname}/../uploadImage/ & git add .')
+    const gitCommit = cmd.runSync(
+        `cd ${__dirname}/../uploadImage/ & git commit -m "${type} ${result._id}-${result.name}"`
+    )
+    const gitLog = cmd.runSync(`cd ${__dirname}/../uploadImage/ & git log`)
+    console.log(gitLog.data)
+    console.log(gitAdd.data)
+    console.log(gitCommit.data)
+}
 
 //------------------------- 查詢圖片 ------------------------------------
 router.get('/list/page=:page&limit=:limit', function (req, res) {
@@ -89,14 +100,7 @@ router.post('/upload', upload, function (req, res) {
     }).save(function (err, result) {
         console.log(result)
         if (!err) {
-            const gitAdd = cmd.runSync('cd ../uploadImage/fileRepository/ & git add .')
-            const gitCommit = cmd.runSync(
-                `cd ../uploadImage/fileRepository/ & git commit -m "${result._id}-${result.name}"`
-            )
-            const gitLog = cmd.runSync('cd ../uploadImage/fileRepository/ & git log')
-            console.log(gitLog.data)
-            console.log(gitAdd.data)
-            console.log(gitCommit.data)
+            gitCommit('upload', result)
         }
         res.json({
             status: err ? false : true,
@@ -140,10 +144,15 @@ router.delete('/delete', function (req, res) {
         fileName = result.fileName
         if (fileID && fileName) {
             //如果fileID && fileName都有拿到
-            SomeModel.deleteOne({ _id: fileID }, function (err, result) {
+            SomeModel.deleteOne({ _id: fileID }, function (err) {
                 let deleteStatus = false
                 if (!err) {
-                    deleteStatus = deleteFile('./uploadImage/fileRepository/', fileName)
+                    deleteStatus = deleteFile('./uploadImage/', fileName)
+                    let result = {
+                        _id: fileID,
+                        name: fileName,
+                    }
+                    gitCommit('delete', result)
                 }
                 res.json({
                     status: deleteStatus ? true : false,
@@ -164,7 +173,7 @@ router.get('/download/_id=:_id', function (req, res) {
     SomeModel.findOne({ _id: _id }).exec(function (err, result) {
         let fileName = result.fileName
         if (fileName) {
-            const file = `${__dirname}/../uploadImage/fileRepository/${fileName}`
+            const file = `${__dirname}/../uploadImage/${fileName}`
             res.download(file)
         }
         console.log(result)
