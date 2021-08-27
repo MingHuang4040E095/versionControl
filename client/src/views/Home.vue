@@ -1,5 +1,6 @@
 <template>
     <section>
+        <!-- <svg viewbox="0 0 1920 1080" id="gitInterface"></svg> -->
         <div class="text-h4 font-weight-bold mb-5 title">檔案版本控制</div>
         <v-file-input show-size label="File input" @change="selectFile"></v-file-input>
         <v-btn color="blue-grey mb-16" class="ma-2 white--text" @click="imageUpload">
@@ -231,6 +232,11 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+#gitInterface {
+    width: 100%;
+    min-height: 450px;
+    background-color: #ffffff;
+}
 .title {
     color: #7ea2d6;
 }
