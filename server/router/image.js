@@ -105,7 +105,7 @@ router.post('/upload', upload, function (req, res) {
         console.log(result)
         if (!err) {
             // gitCommit('upload', result)
-            let message = `'upload' ${result._id}-${result.name}`
+            let message = `upload ${result._id}-${result.name}`
             gitCommit(message)
         }
         res.json({
@@ -154,12 +154,7 @@ router.delete('/delete', function (req, res) {
                 let deleteStatus = false
                 if (!err) {
                     deleteStatus = deleteFile('./uploadImage/', fileName)
-                    // let result = {
-                    //     _id: fileID,
-                    //     name: fileName,
-                    // }
-                    // gitCommit('delete', result)
-                    let message = `'delete' ${result._id}-${result.name}`
+                    let message = `delete ${fileID}-${fileName}`
                     gitCommit(message)
                 }
                 res.json({
