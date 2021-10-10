@@ -78,6 +78,7 @@ router.get('/list/page=:page&limit=:limit', function (req, res) {
     SomeModel.find({})
         .skip(skip)
         .limit(limit)
+        .sort({dateUpload:'desc'})
         .exec(function (err, result) {
             res.json({
                 status: err ? false : true,
@@ -187,7 +188,7 @@ router.get('/download/_id=:_id', function (req, res) {
 router.get('/vsersionList/name=:name',function(req,res){
     let name = req.params.name //取得檔案名稱
     //搜尋所有檔案名稱一樣名稱的資料
-    SomeModel.find({name:name}).exec(function(err,result){
+    SomeModel.find({name:name}).sort({dateUpload:'desc'}).exec(function(err,result){
         res.json({
             status:err?false:true,
             filesList:err?[]:result
