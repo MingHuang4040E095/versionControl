@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const moment = require('moment')
+const {gitCommit,gitCheckout} = require('../gitDirectives.js')
 //-------------------- 資料庫 ----------------------
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
@@ -54,16 +55,19 @@ let upload = multer({
 // .array('file',12) //最多接收12個名為file的檔案
 // .fields([{ name: 'avatar', maxCount: 1 }, { name: 'gallery', maxCount: 8 }]) //接收名為 avatar 和 gallery 欄位的檔案，分別接受最多 1 個和 8 個檔案
 
-function gitCommit(type, result) {
-    const gitAdd = cmd.runSync('cd ${__dirname}/../uploadImage/ & git add .')
-    const gitCommit = cmd.runSync(
-        `cd ${__dirname}/../uploadImage/ & git commit -m "${type} ${result._id}-${result.name}"`
-    )
-    const gitLog = cmd.runSync(`cd ${__dirname}/../uploadImage/ & git log`)
-    console.log(gitLog.data)
-    console.log(gitAdd.data)
-    console.log(gitCommit.data)
-}
+// function gitCommit(type, result) {
+//     let message = `${type} ${result._id}-${result.name}`
+//     let resultCommit = gitCommit(message)
+//     console.log(resultCommit)
+//     // const gitAdd = cmd.runSync('cd ${__dirname}/../uploadImage/ & git add .')
+//     // const gitCommit = cmd.runSync(
+//     //     `cd ${__dirname}/../uploadImage/ & git commit -m "${type} ${result._id}-${result.name}"`
+//     // )
+//     // const gitLog = cmd.runSync(`cd ${__dirname}/../uploadImage/ & git log`)
+//     // console.log(gitLog.data)
+//     // console.log(gitAdd.data)
+//     // console.log(gitCommit.data)
+// }
 
 //------------------------- 查詢圖片 ------------------------------------
 router.get('/list/page=:page&limit=:limit', function (req, res) {
@@ -100,7 +104,9 @@ router.post('/upload', upload, function (req, res) {
     }).save(function (err, result) {
         console.log(result)
         if (!err) {
-            gitCommit('upload', result)
+            // gitCommit('upload', result)
+            let message = `'upload' ${result._id}-${result.name}`
+            gitCommit(message)
         }
         res.json({
             status: err ? false : true,
@@ -148,11 +154,13 @@ router.delete('/delete', function (req, res) {
                 let deleteStatus = false
                 if (!err) {
                     deleteStatus = deleteFile('./uploadImage/', fileName)
-                    let result = {
-                        _id: fileID,
-                        name: fileName,
-                    }
-                    gitCommit('delete', result)
+                    // let result = {
+                    //     _id: fileID,
+                    //     name: fileName,
+                    // }
+                    // gitCommit('delete', result)
+                    let message = `'delete' ${result._id}-${result.name}`
+                    gitCommit(message)
                 }
                 res.json({
                     status: deleteStatus ? true : false,
