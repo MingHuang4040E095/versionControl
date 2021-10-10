@@ -4,7 +4,7 @@
             <v-container class="fill-height">
                 <v-row class="text-center">
                     <v-col md="8" offset-md="2" cols="12">
-                        <router-view router-view></router-view>
+                        <router-view router-view @commit="getCommit"></router-view>
                     </v-col>
                 </v-row>
             </v-container>
@@ -17,6 +17,11 @@ export default {
     data: () => ({
         //
     }),
+    methods: {
+        getCommit(value) {
+            alert(value)
+        },
+    },
 }
 </script>
 <style lang="scss"></style>

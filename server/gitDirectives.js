@@ -4,9 +4,9 @@ const cmd = require('node-cmd') //https://www.npmjs.com/package/node-cmd
  * @param {*提交訊息} message 
  */
 function gitCommit(message){
-    cmd.runSync(`cd ${__dirname}/../uploadImage/ & git add .`)
+    cmd.runSync(`cd ${__dirname}/uploadImage/ & git add .`)
     const commit = cmd.runSync(
-        `cd ${__dirname}/../uploadImage/ & git commit -m "${message}"`
+        `cd ${__dirname}/uploadImage/ & git commit -m "${message}"`
     )
     return commit
     // cmd.runSync(`cd ${__dirname}/../uploadImage/ & git log`)
@@ -21,7 +21,7 @@ function gitCommit(message){
 function gitCheckout(hash){
     if(!hash) return false
     const checkout = cmd.runSync(
-        `cd ${__dirname}/../uploadImage/ & git checkout ${hash}`
+        `cd ${__dirname}/uploadImage/ & git checkout ${hash}`
     )
     return checkout
 }

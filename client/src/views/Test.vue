@@ -1,11 +1,18 @@
 <template>
     <div style="height:550px;width:100%">
+        <button @click="childMethodsTest">子組件Methods測試</button>
         <h3>當前座標{{ map_center[0] + ',' + map_center[1] }}</h3>
         <h4>標記點位座標{{ coordinate_marker[0] + ',' + coordinate_marker[1] }}</h4>
         <form @submit.prevent="setCenter">
             <v-text-field label="Another input" v-model="location"></v-text-field>
         </form>
-        <MapGeneral :mapLocation.sync="mapLaction" @update="updateLocation" @currentMapCenter="getCurrentMapCenter" />
+        <!-- <MapGeneral
+            :mapLocation.sync="mapLaction"
+            @update="updateLocation"
+            @currentMapCenter="getCurrentMapCenter"
+            @click="tt"
+        /> -->
+        <router-view @methods="getChildMethods" :value="456" v-on="$listeners"></router-view>
     </div>
 </template>
 <script>
@@ -38,6 +45,7 @@ export default {
             coordinate_marker: [], //標記點位座標
             // coordinate,
             location: [], //座標位置
+            childMethods: {},
         }
     },
     methods: {
@@ -55,6 +63,13 @@ export default {
         getCurrentMapCenter(latlng = []) {
             if (!latlng.length) return
             this.map_center = latlng
+        },
+        getChildMethods(methods) {
+            this.childMethods = methods
+        },
+        childMethodsTest() {
+            this.childMethods.tt()
+            this.$emit('test', 'yyy')
         },
     },
 }

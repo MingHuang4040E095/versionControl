@@ -1,5 +1,10 @@
 <template>
-    <div>
+    <div style="width:100%;height:auto;min-height:600px;">
+        <div>
+            <div>{{ id }}</div>
+            <div>{{ name }}</div>
+            <div>{{ value }}</div>
+        </div>
         <div class="theme-color">
             <div v-for="color in themeColor" :key="color" :style="{ 'background-color': color }">{{ color }}</div>
         </div>
@@ -12,9 +17,15 @@
                 </text>
             </g>
             <!-- 分支 -->
-            <g transform="translate(0, 35)" v-for="branch in graph_line_other" :key="branch">
+            <g transform="translate(0, 35)" v-for="(branch, index) in graph_line_other" :key="branch">
                 <g transform="translate(20, 0)">
-                    <path fill="none" stroke="#4D4E64" stroke-width="5" stroke-linecap="round" :d="branch"></path>
+                    <path
+                        fill="none"
+                        :stroke="themeColor[index + 3]"
+                        stroke-width="5"
+                        stroke-linecap="round"
+                        :d="branch"
+                    ></path>
                 </g>
             </g>
             <!-- Graph 圖形區塊 -->
@@ -56,6 +67,20 @@
 </template>
 <script>
 export default {
+    props: {
+        id: {
+            type: [String, Number],
+            default: null,
+        },
+        name: {
+            type: String,
+            default: 'name',
+        },
+        value: {
+            type: String,
+            default: 'value',
+        },
+    },
     computed: {
         viewbox() {
             return `0 0 ${this.svgWidth} ${this.svgHeight}`
@@ -159,20 +184,20 @@ export default {
 
                 let targetBranch_index = branchList.findIndex((branch) => branch === branchStart_nextNode.branch)
                 let branchNumber_target = targetBranch_index + 1 //介面由左至右的分支編號 (分支0 分支1 分支2)
-                // let x = 50
-                // if(branchNumber_target>branchNumber) x = x + x*branchNumber
+                console.log(branchNumber_target)
 
-                console.log(branchStart_nextNode)
-                branchStart_nextNode = {
-                    ...branchStart_nextNode,
-                    x:
-                        branchNumber_target > branchNumber
-                            ? 50 + 25 * branchNumber
-                            : branchStart_nextNode.x + branchNumber * 25,
+                if (branchNumber_target !== branchNumber) {
+                    console.log(branchStart_nextNode)
+                    branchStart_nextNode = {
+                        ...branchStart_nextNode,
+                        x:
+                            branchNumber_target > branchNumber
+                                ? 50 + 25 * branchNumber
+                                : branchStart_nextNode.x + branchNumber * 25,
+                    }
+                    branchCoordinate.push(branchStart_nextNode)
                 }
-                branchCoordinate.push(branchStart_nextNode)
-                branchCoordinate.push(branchStart) //
-                console.warn(branchCoordinate)
+                branchCoordinate.push(branchStart) // 分支起點
 
                 //拼接座標
                 let path_d = ''
@@ -188,9 +213,8 @@ export default {
         description_text() {
             let targetTitle = this.header_text.find((item) => item.title === 'Description')
             let x = targetTitle?.x //取得x座標
-            // let path_d = ''
-            // let x = this.graph_coordinate_x //X座標
             let y = this.graph_coordinate_y //y座標
+
             let graph_text = this.commitRecord.map((item, index) => {
                 let number = index + 1
                 let target_y = y * number //計算y的座標
@@ -231,6 +255,14 @@ export default {
                     date: '', //提交日期
                 },
                 {
+                    commit: 'osdgnndfh', //提交的哈希值
+                    previousCommit: '4zxcasfzxvz', //上一次提交的哈希值
+                    description: '分支一號', //提交訊息
+                    author: 'Willy', //提交人
+                    branch: 'delete-image', //分支
+                    date: '', //提交日期
+                },
+                {
                     commit: 'mfdfoaf84xc6b', //提交的哈希值
                     previousCommit: 'saf84xc6b', //上一次提交的哈希值
                     description: '分支二號', //提交訊息
@@ -241,20 +273,13 @@ export default {
 
                 {
                     commit: 'saf84xc6b', //提交的哈希值
-                    previousCommit: '2as', //上一次提交的哈希值
+                    previousCommit: '4zxcasfzxvz', //上一次提交的哈希值
                     description: '分支二號', //提交訊息
                     author: 'Willy00', //提交人
                     branch: 'edit-image', //分支
                     date: '', //提交日期
                 },
-                {
-                    commit: 'osdgnndfh', //提交的哈希值
-                    previousCommit: '4zxcasfzxvz', //上一次提交的哈希值
-                    description: '分支一號', //提交訊息
-                    author: 'Willy', //提交人
-                    branch: 'delete-image', //分支
-                    date: '', //提交日期
-                },
+
                 {
                     commit: '2as', //提交的哈希值
                     previousCommit: '3as', //上一次提交的哈希值

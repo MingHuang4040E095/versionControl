@@ -1,6 +1,8 @@
 <template>
     <div class="mapGeneral">
         <!-- <div style="height: 100%;"> -->
+        <div>{{ value }}</div>
+        <div>{{ name }}</div>
         <l-map :zoom="zoom" :center="mapLocation_computed" :options="mapOptions" @update:center="getCenter">
             <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
             <!-- <l-control-zoom position="bottomleft"></l-control-zoom> -->
@@ -15,6 +17,7 @@
         <div class="tool-box">
             <button @click="setMarker" style="margin-right:1.5rem">標記</button>
             <button @click="goToMarker">回到標記點位</button>
+            <button @click="commit">測試</button>
         </div>
     </div>
 </template>
@@ -38,6 +41,14 @@ export default {
             default: function() {
                 return [22.9977989, 120.2611459]
             },
+        },
+        name: {
+            type: String,
+            default: null,
+        },
+        value: {
+            type: Number,
+            defalut: null,
         },
     },
     computed: {
@@ -102,6 +113,19 @@ export default {
                 this.mapLocation_computed = this.coordinate_marker
             })
         },
+        tt() {
+            alert('tt')
+        },
+        commit() {
+            alert('123')
+            this.$emit('commit', 'Map')
+        },
+    },
+    created() {
+        let obj = {
+            tt: this.tt,
+        }
+        this.$emit('methods', obj)
     },
 }
 </script>

@@ -27,16 +27,45 @@ const routes = [
     {
         path: '/test',
         name: 'Test',
-        props: true,
+        // props: true,
+        props: (route) => ({
+            // name: route.query.name,
+            // id: route.params.id,
+            ...route.query,
+            ...route.params,
+        }),
         // route level code-splitting
         // this generates a separate chunk (about.[hash].js) for this route
         // which is lazy-loaded when the route is visited.
         component: () => import('@/views/Test.vue'),
+        children: [
+            {
+                path: '/',
+                name: 'map',
+                props: (route) => ({
+                    // name: route.query.name,
+                    // id: route.params.id,
+                    ...route.query,
+                    ...route.params,
+                }),
+                component: () => import('@/components/MapGeneral.vue'),
+            },
+            {
+                path: 'hello',
+                name: 'hello',
+                component: () => import('@/components/HelloWorld.vue'),
+            },
+        ],
     },
     {
-        path: '/git',
+        path: '/git/:id',
         name: 'Git',
-        props: true,
+        props: (route) => ({
+            // name: route.query.name,
+            // id: route.params.id,
+            ...route.query,
+            ...route.params,
+        }),
         // route level code-splitting
         // this generates a separate chunk (about.[hash].js) for this route
         // which is lazy-loaded when the route is visited.
