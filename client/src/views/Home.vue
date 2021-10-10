@@ -48,7 +48,7 @@
 
                             <v-dialog transition="dialog-top-transition" max-width="600">
                                 <template v-slot:activator="{ on, attrs }">
-                                    <v-icon small class="mr-2" v-bind="attrs" v-on="on">
+                                    <v-icon small class="mr-2" v-bind="attrs" v-on="on" @click="imageVersionList(item)">
                                         mdi-format-list-bulleted
                                     </v-icon>
                                 </template>
@@ -204,6 +204,13 @@ export default {
                 })
                 .finally(() => {})
         },
+        //搜尋圖片版本清單
+        imageVersionList(item){
+            this.$http.get(`/image/vsersionList/name=${item.name}`).then(res=>{
+                console.log(res)
+            })
+        },
+
         initialize(value) {
             console.log(value)
         },

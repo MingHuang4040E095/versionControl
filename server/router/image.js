@@ -21,7 +21,7 @@ const SomeModel = mongoose.model('files', SomeModelSchema)
 
 //------------------ multer 上傳檔案 ----------------------
 //npm i multer node-cmd
-const cmd = require('node-cmd') //https://www.npmjs.com/package/node-cmd
+// const cmd = require('node-cmd') //https://www.npmjs.com/package/node-cmd
 const multer = require('multer')
 let storage = multer.diskStorage({
     // // 設定檔案存取位置
@@ -181,6 +181,19 @@ router.get('/download/_id=:_id', function (req, res) {
         }
         console.log(result)
     })
+})
+
+//搜尋檔案版本清單
+router.get('/vsersionList/name=:name',function(req,res){
+    let name = req.params.name //取得檔案名稱
+    //搜尋所有檔案名稱一樣名稱的資料
+    SomeModel.find({name:name}).exec(function(err,result){
+        res.json({
+            status:err?false:true,
+            filesList:err?[]:result
+        })
+    })
+
 })
 
 module.exports = router
