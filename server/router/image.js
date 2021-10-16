@@ -75,16 +75,40 @@ router.get('/list/page=:page&limit=:limit', function (req, res) {
     let page = Number(req.params.page) //當前頁數
     let limit = Number(req.params.limit) //一頁要顯示幾筆
     let skip = (Number(page) - 1) * Number(limit) //要跳過的數量
-    SomeModel.find({})
-        .skip(skip)
-        .limit(limit)
-        .sort({dateUpload:'desc'})
-        .exec(function (err, result) {
-            res.json({
-                status: err ? false : true,
-                data: err ? [] : result,
-            })
+    SomeModel.aggregate([
+        { 
+            '$group': { 
+                '_id':'$name',
+                'name': { $last: "$name" },
+                'size': { $last: "$size" },
+                'type':{ $last: "$type" },
+                'dateUpload':{ $first: "$dateUpload" },
+                'dateUpdated':{$last: "$dateUpload"},
+                'version':{$sum:1}
+            } 
+        },
+        { '$skip': skip },
+        { '$limit': limit },
+        { '$sort' : { 'dateUpload' : 1} }
+    ]).exec(function(err,result){
+        console.log(result)
+        console.log(err)
+        res.json({
+            status: err ? false : true,
+            data: err ? [] : result,
         })
+    })
+    // SomeModel
+    //     .find()
+    //     .skip(skip)
+    //     .limit(limit)
+    //     .sort({dateUpload:'desc'})
+    //     .exec(function (err, result) {
+    //         res.json({
+    //             status: err ? false : true,
+    //             data: err ? [] : result,
+    //         })
+    //     })
 })
 
 //----------------------- 上傳圖片 ------------------------------------
