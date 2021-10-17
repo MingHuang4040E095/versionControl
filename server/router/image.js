@@ -77,19 +77,19 @@ router.get('/list/page=:page&limit=:limit', function (req, res) {
     let skip = (Number(page) - 1) * Number(limit) //要跳過的數量
     SomeModel.aggregate([
         { 
-            '$group': { 
-                '_id':'$name',
-                'name': { $last: "$name" },
-                'size': { $last: "$size" },
-                'type':{ $last: "$type" },
-                'dateUpload':{ $first: "$dateUpload" },
-                'dateUpdated':{$last: "$dateUpload"},
-                'version':{$sum:1}
+            $group: { 
+                _id:'$name',
+                name: { $last: "$name" },
+                size: { $last: "$size" },
+                type:{ $last: "$type" },
+                dateUpload:{ $first: "$dateUpload" },
+                dateUpdated:{$last: "$dateUpload"},
+                version:{$sum:1}
             } 
         },
-        { '$skip': skip },
-        { '$limit': limit },
-        { '$sort' : { 'dateUpload' : 1} }
+        { $skip: skip },
+        { $limit: limit },
+        { $sort : { 'dateUpload' : 1} }
     ]).exec(function(err,result){
         console.log(result)
         console.log(err)
@@ -98,21 +98,9 @@ router.get('/list/page=:page&limit=:limit', function (req, res) {
             data: err ? [] : result,
         })
     })
-    // SomeModel
-    //     .find()
-    //     .skip(skip)
-    //     .limit(limit)
-    //     .sort({dateUpload:'desc'})
-    //     .exec(function (err, result) {
-    //         res.json({
-    //             status: err ? false : true,
-    //             data: err ? [] : result,
-    //         })
-    //     })
 })
 
 //----------------------- 上傳圖片 ------------------------------------
-// app.post('/imageUpload', upload, function (req, res) {
 router.post('/upload', upload, function (req, res) {
     //先去找是否有相同檔名
     // SomeModel.findOne({ name: req.file.originalname }).exec(function (err, result) {
@@ -165,8 +153,6 @@ function deleteFile(url, name) {
 
 //刪除圖片
 router.delete('/delete', function (req, res) {
-    // query: { _id: '6096a5f15c003b43e0f4234b' },
-
     let fileID = ''
     let fileName = ''
     SomeModel.findOne({ _id: req.query._id }).exec(function (err, result) {
@@ -212,13 +198,27 @@ router.get('/download/_id=:_id', function (req, res) {
 router.get('/vsersionList/name=:name',function(req,res){
     let name = req.params.name //取得檔案名稱
     //搜尋所有檔案名稱一樣名稱的資料
-    SomeModel.find({name:name}).sort({dateUpload:'desc'}).exec(function(err,result){
+    SomeModel.aggregate([
+        { 
+            $match : {name : name}
+        },
+        { 
+            $group: { 
+                _id:'$_id',
+                name: { $last: "$name" },
+                size: { $last: "$size" },
+                dateUpload:{ $first: "$dateUpload" },
+            } 
+        },
+        { $sort : { 'dateUpload' : -1} }
+    ]).exec(function(err,result){
+        console.log(result)
+        console.log(err)
         res.json({
-            status:err?false:true,
-            filesList:err?[]:result
+            status: err ? false : true,
+            data: err ? [] : result,
         })
     })
-
 })
 
 module.exports = router

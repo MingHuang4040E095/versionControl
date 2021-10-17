@@ -71,7 +71,60 @@
                 <template v-slot:default="dialog">
                   <v-card>
                     <v-toolbar color="primary" dark>檔案版本清單</v-toolbar>
-                    <v-card-text> </v-card-text>
+                    <!-- <v-card-text> 123</v-card-text> -->
+                    <!-- <v-row class="text-center mt-2">
+                      <v-col cols="8">版本</v-col>
+                      <v-col cols="4">下載</v-col>
+                    </v-row>
+                    <v-row class="text-center mt-1" v-for="(file,index) in vsersionList" :key="file._id">
+                      <v-col cols="8">{{index}}</v-col>
+                      <v-col cols="4">下載</v-col>
+                    </v-row> -->
+                    <v-simple-table
+                      sort-by="calories"
+                      class="elevation-1 text-subtitle-1"
+                    >
+                      <template v-slot:default>
+                        <thead>
+                          <tr>
+                            <th
+                              class="text-center"
+                              v-for="file in vsersionListHeaders"
+                              :key="file.value"
+                            >
+                              {{ file.text }}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr
+                            v-for="file in vsersionList"
+                            :key="file._id"
+                            class="text-center"
+                          >
+                            <td>{{ file.version }}</td>
+                            <td>{{ file.size / 1000 }}</td>
+                            <td>
+                              {{
+                                moment(file.dateUpload).format(
+                                  "YYYY-MM-DD HH:mm:ss"
+                                )
+                              }}
+                            </td>
+                            <td>
+                              <v-icon
+                                small
+                                class="mr-2"
+                                @click="imageDownload(item)"
+                              >
+                                mdi-download
+                              </v-icon>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </template>
+                    </v-simple-table>
+
                     <v-card-actions class="justify-end">
                       <v-btn text @click="dialog.value = false">Close</v-btn>
                     </v-card-actions>
@@ -140,7 +193,24 @@ export default {
 
       //訊息條
       messageStatus: false,
-      messageText: ""
+      messageText: "",
+
+      //版本清單
+      vsersionList: [],
+      vsersionListHeaders: [
+        {
+          text: "版本",
+          align: "start",
+          sortable: false,
+          value: "version"
+        },
+        { text: "檔案大小 (kB)", value: "size" },
+        {
+          text: "日期",
+          value: "dateUpload"
+        },
+        { text: "Actions", value: "actions", sortable: false }
+      ]
     };
   },
   methods: {
@@ -221,7 +291,16 @@ export default {
     //搜尋圖片版本清單
     imageVersionList(item) {
       this.$http.get(`/image/vsersionList/name=${item.name}`).then(res => {
-        console.log(res);
+        // console.log(res);
+        this.vsersionList = res.data.data.map((item, index, thisArray) => {
+          let versionLast = thisArray.length; // 最新版
+
+          let version = versionLast - index;
+          return {
+            ...item,
+            version
+          };
+        });
       });
     },
 
