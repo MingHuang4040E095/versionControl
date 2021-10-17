@@ -14,8 +14,8 @@ var db = mongoose.connection
 //Bind connection to error event (to get notification of connection errors)
 db.on('error', console.error.bind(console, 'MongoDB connection error:'))
 
-const imageRouter = require('./router/image.js') //設定api路由 圖片相關的api統一使用 /image
-app.use('/image', imageRouter)
+const fileRouter = require('./router/file.js') //設定api路由 圖片相關的api統一使用 /file
+app.use('/file', fileRouter)
 
 app.listen(3000, () => {
     console.log('啟動')

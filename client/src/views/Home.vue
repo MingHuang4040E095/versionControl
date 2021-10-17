@@ -7,11 +7,7 @@
       label="File input"
       @change="selectFile"
     ></v-file-input>
-    <v-btn
-      color="blue-grey mb-16"
-      class="ma-2 white--text"
-      @click="imageUpload"
-    >
+    <v-btn color="blue-grey mb-16" class="ma-2 white--text" @click="fileUpload">
       Upload
       <v-icon right dark>
         mdi-cloud-upload
@@ -19,10 +15,10 @@
     </v-btn>
     <v-simple-table sort-by="calories" class="elevation-1 text-subtitle-1">
       <!-- <template v-slot:item.actions="{ item }">
-                <v-icon small class="mr-2" @click="imageEdit(item)">
+                <v-icon small class="mr-2" @click="fileEdit(item)">
                     mdi-pencil
                 </v-icon>
-                <v-icon small @click="imageDelete(item)">
+                <v-icon small @click="fileDelete(item)">
                     mdi-delete
                 </v-icon>
             </template> -->
@@ -40,7 +36,7 @@
                 { text: '上傳日期', value: 'dateUpload' },
                 { text: 'Actions', value: 'actions', sortable: false }, -->
         <tbody>
-          <tr v-for="item in fileList" :key="item._id">
+          <tr v-for="item in fileList" :key="item.id">
             <td>{{ item.name }}</td>
             <td>{{ item.version }}</td>
             <td>{{ item.size / 1000 }}</td>
@@ -52,7 +48,7 @@
               {{ moment(item.dateUpload).format("YYYY-MM-DD HH:mm:ss") }}
             </td>
             <td>
-              <v-icon small class="mr-2" @click="imageDownload(item)">
+              <v-icon small class="mr-2" @click="fileDownload(item)">
                 mdi-download
               </v-icon>
 
@@ -63,7 +59,7 @@
                     class="mr-2"
                     v-bind="attrs"
                     v-on="on"
-                    @click="imageVersionList(item)"
+                    @click="fileVersionList(item)"
                   >
                     mdi-format-list-bulleted
                   </v-icon>
@@ -115,7 +111,7 @@
                               <v-icon
                                 small
                                 class="mr-2"
-                                @click="imageDownload(item)"
+                                @click="fileDownload(item)"
                               >
                                 mdi-download
                               </v-icon>
@@ -132,10 +128,10 @@
                 </template>
               </v-dialog>
 
-              <v-icon small class="mr-2" @click="imageEdit(item)">
+              <v-icon small class="mr-2" @click="fileEdit(item)">
                 mdi-pencil
               </v-icon>
-              <v-icon small @click="imageDelete(item)">
+              <v-icon small @click="fileDelete(item)">
                 mdi-delete
               </v-icon>
             </td>
@@ -219,13 +215,13 @@ export default {
       console.log(file);
       this.file = file;
     },
-    imageUpload() {
+    fileUpload() {
       let status = false;
       let formData = new FormData();
       console.log(this.file);
       formData.append("file", this.file);
       this.$http
-        .post("/image/upload", formData, {
+        .post("/file/upload", formData, {
           "Content-Type": "multipart/form-data"
         })
         .then(res => {
@@ -237,21 +233,21 @@ export default {
         .finally(() => {
           this.messageStatus = true;
           this.messageText = status ? "上傳成功" : "上傳失敗";
-          status ? this.imagesList() : null;
+          status ? this.filesList() : null;
         });
     },
     //編輯檔案
-    imageEdit(file) {
+    fileEdit(file) {
       console.log(file);
     },
     //刪除檔案
-    imageDelete(file) {
+    fileDelete(file) {
       console.log(file);
       let status = false;
       this.$http
-        .delete("/image/delete", {
+        .delete("/file/delete", {
           params: {
-            _id: file._id
+            _id: file.id
           }
         })
         .then(res => {
@@ -263,14 +259,14 @@ export default {
         .finally(() => {
           this.messageStatus = true;
           this.messageText = status ? "刪除成功" : "刪除失敗";
-          status ? this.imagesList() : null;
+          status ? this.filesList() : null;
         });
     },
     //下載檔案
-    imageDownload(file) {
+    fileDownload(file) {
       //回傳格式設定為 blob
       this.$http
-        .get(`/image/download/_id=${file._id}`, { responseType: "blob" })
+        .get(`/file/download/_id=${file._id}`, { responseType: "blob" })
         .then(res => {
           console.log(res);
           let a = document.createElement("a");
@@ -289,8 +285,8 @@ export default {
         .finally(() => {});
     },
     //搜尋圖片版本清單
-    imageVersionList(item) {
-      this.$http.get(`/image/vsersionList/name=${item.name}`).then(res => {
+    fileVersionList(item) {
+      this.$http.get(`/file/vsersionList/name=${item.name}`).then(res => {
         // console.log(res);
         this.vsersionList = res.data.data.map((item, index, thisArray) => {
           let versionLast = thisArray.length; // 最新版
@@ -308,8 +304,8 @@ export default {
       console.log(value);
     },
 
-    imagesList(page = 1, limit = 5) {
-      this.$http.get(`/image/list/page=${page}&limit=${limit}`).then(res => {
+    filesList(page = 1, limit = 5) {
+      this.$http.get(`/file/list/page=${page}&limit=${limit}`).then(res => {
         console.log(res);
 
         this.fileList = res.data.data;
@@ -322,12 +318,12 @@ export default {
         // for (let i = 0; i < len; i++) {
         //     storeData += String.fromCharCode(bytes[i])
         // }
-        // this.imgUrl = 'data:image/png;base64,' + window.btoa(storeData)
+        // this.imgUrl = 'data:file/png;base64,' + window.btoa(storeData)
       });
     }
   },
   created() {
-    this.imagesList(this.page);
+    this.filesList(this.page);
   }
 };
 </script>

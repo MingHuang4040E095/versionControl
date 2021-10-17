@@ -84,7 +84,8 @@ router.get('/list/page=:page&limit=:limit', function (req, res) {
                 type:{ $last: "$type" },
                 dateUpload:{ $first: "$dateUpload" },
                 dateUpdated:{$last: "$dateUpload"},
-                version:{$sum:1}
+                version:{$sum:1},
+                id:{ $last: "$_id" }
             } 
         },
         { $skip: skip },
