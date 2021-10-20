@@ -40,5 +40,16 @@ function gitGetHashBranchLast(branchName = 'master'){
     return lastHash
 }
 
-module.exports = {gitCommit,gitCheckout,gitGetHashBranchLast}
+/**
+ * 取得目前commit點位的hash值
+ * @returns {hash值}
+ */
+function gitGetHashHead(){
+    const currentCommitHash = cmd.runSync(
+        `cd ${__dirname}/uploadImage/ & git rev-parse HEAD`
+    )
+    return currentCommitHash
+}
+
+module.exports = {gitCommit,gitCheckout,gitGetHashBranchLast,gitGetHashHead}
 // export {gitCommit,gitCheckout}
