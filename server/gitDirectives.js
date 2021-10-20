@@ -5,11 +5,12 @@ const cmd = require('node-cmd') //https://www.npmjs.com/package/node-cmd
  */
 function gitCommit(message){
     cmd.runSync(`cd ${__dirname}/uploadImage/ & git add .`)
-    const commit = cmd.runSync(
+    cmd.runSync(
         `cd ${__dirname}/uploadImage/ & git commit -m "${message}"`
     )
-    return commit
-    // cmd.runSync(`cd ${__dirname}/../uploadImage/ & git log`)
+    // const log = cmd.runSync(`cd ${__dirname}/uploadImage/ & git log`)
+    // console.log(log.data)
+    return log.data
 }
 
 
@@ -26,5 +27,18 @@ function gitCheckout(hash){
     return checkout
 }
 
-module.exports = {gitCommit,gitCheckout}
+/**
+ * 取得該分支的最後一個commit的hash值
+ * @param {*分支名稱} branchName 
+ * @returns {hash值}
+ */
+function gitGetHashBranchLast(branchName = 'master'){
+    // 最後一筆commit的hash
+    const lastHash = cmd.runSync(
+        `cd ${__dirname}/uploadImage/ & git rev-parse ${branchName}`
+    )
+    return lastHash
+}
+
+module.exports = {gitCommit,gitCheckout,gitGetHashBranchLast}
 // export {gitCommit,gitCheckout}
