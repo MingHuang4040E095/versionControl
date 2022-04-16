@@ -17,6 +17,9 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'))
 const fileRouter = require('./router/file.js') //設定api路由 圖片相關的api統一使用 /file
 app.use('/file', fileRouter)
 
+const userRouter = require('./router/user.js') //設定api路由 圖片相關的api統一使用 /user
+app.use('/user',userRouter)
+
 app.listen(3000, () => {
     console.log('啟動')
 })
