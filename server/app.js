@@ -2,6 +2,9 @@ const express = require('express')
 const app = express()
 var history = require('connect-history-api-fallback')
 app.use(history()) //讓前端網址不要有/#/
+app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
+
 
 //------------------ mongoDB ----------------------
 const mongoose = require('mongoose') //資料庫
