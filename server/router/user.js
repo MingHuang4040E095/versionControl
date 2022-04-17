@@ -68,11 +68,12 @@ router.get('/detail/userID=:userID',function(req,res){
                 account: { $last: "$account" },
             } 
         },
+        { $limit: 1 },
     ]).exec(function(err,result){
         console.log(result)
         res.json({
             status:err?false:true,
-            data: result
+            data: result.shift()
         })
     })
 })

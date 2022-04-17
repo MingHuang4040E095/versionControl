@@ -2,6 +2,10 @@
   <section>
     <!-- <svg viewbox="0 0 1920 1080" id="gitInterface"></svg> -->
     <div class="text-h4 font-weight-bold mb-5 title">檔案版本控制</div>
+    <div class="text-h5 mb-5 title">
+      <div>account: {{ currentUser.account }}</div>
+      <div>_id: {{ currentUser._id }}</div>
+    </div>
     <v-file-input
       show-size
       label="File input"
@@ -23,7 +27,7 @@
     <v-btn
       color="blue-grey mb-16"
       class="ma-2 white--text"
-      @click="getUserDetail(firstUser._id)"
+      @click="getUserDetail(firstUser)"
     >
       搜尋使用者詳細資料
     </v-btn>
@@ -229,7 +233,12 @@ export default {
       ],
 
       //-------------------- 使用者相關 --------------------
-      userList: []
+      userList: [],
+      // 當前使用者
+      currentUser: {
+        _id: null,
+        account: ""
+      }
     };
   },
   methods: {
@@ -354,8 +363,10 @@ export default {
       });
     },
 
-    getUserDetail(userID) {
-      this.$http.get(`/user/detail/userID=${userID}`).then(res => {
+    getUserDetail(userInfo) {
+      if (!userInfo?._id) return;
+      this.$http.get(`/user/detail/userID=${userInfo._id}`).then(res => {
+        this.currentUser = res.data.data;
         console.log(res);
       });
     }
