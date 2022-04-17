@@ -61,19 +61,16 @@ router.get('/list',function(req,res){
 
 // 查詢使用者詳細資料
 router.get('/detail/userID=:userID',function(req,res){
-    UserModel.aggregate([
-        { 
-            $group: { 
-                _id:'$_id',
-                account: { $last: "$account" },
-            } 
-        },
-        { $limit: 1 },
-    ]).exec(function(err,result){
+    console.log(req.params)
+    UserModel.findOne({
+        _id:req.params.userID
+    },{
+        password:0 // 不要顯示password這個欄位
+    }).exec(function(err,result){
         console.log(result)
         res.json({
             status:err?false:true,
-            data: result.shift()
+            data: result
         })
     })
 })
