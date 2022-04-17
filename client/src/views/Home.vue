@@ -13,6 +13,20 @@
         mdi-cloud-upload
       </v-icon>
     </v-btn>
+    <v-btn
+      color="blue-grey mb-16"
+      class="ma-2 white--text"
+      @click="getUserList"
+    >
+      搜尋所有使用者
+    </v-btn>
+    <v-btn
+      color="blue-grey mb-16"
+      class="ma-2 white--text"
+      @click="getUserDetail(firstUser._id)"
+    >
+      搜尋使用者詳細資料
+    </v-btn>
     <v-simple-table sort-by="calories" class="elevation-1 text-subtitle-1">
       <!-- <template v-slot:item.actions="{ item }">
                 <v-icon small class="mr-2" @click="fileEdit(item)">
@@ -162,6 +176,12 @@ export default {
       default: "1"
     }
   },
+  computed: {
+    // 第一個使用者 - 測試用
+    firstUser() {
+      return this.userList.shift();
+    }
+  },
   data() {
     return {
       moment: moment, //時間格式化套件
@@ -206,7 +226,10 @@ export default {
           value: "dateUpload"
         },
         { text: "Actions", value: "actions", sortable: false }
-      ]
+      ],
+
+      //-------------------- 使用者相關 --------------------
+      userList: []
     };
   },
   methods: {
@@ -247,7 +270,8 @@ export default {
       this.$http
         .delete("/file/delete", {
           params: {
-            _id: file.id
+            _id: file.id,
+            name: file.name
           }
         })
         .then(res => {
@@ -319,6 +343,20 @@ export default {
         //     storeData += String.fromCharCode(bytes[i])
         // }
         // this.imgUrl = 'data:file/png;base64,' + window.btoa(storeData)
+      });
+    },
+
+    //------------------------- 使用者相關methods -------------------
+    getUserList() {
+      this.$http.get("/user/list").then(res => {
+        this.userList = res.data.data;
+        console.log(res);
+      });
+    },
+
+    getUserDetail(userID) {
+      this.$http.get(`/user/detail/userID=${userID}`).then(res => {
+        console.log(res);
       });
     }
   },
