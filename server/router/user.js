@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const bcrypt = require("bcryptjs");
 const fs = require('fs') // 檔案相關套件
+const {gitInit} = require('../gitDirectives.js')
 
 //-------------------- 資料庫 ----------------------
 const mongoose = require('mongoose')
@@ -50,19 +51,27 @@ router.post('/add',async function(req,res){
 
     // -- 3.新增使用者
     console.log('add user step3: add user')
-    const resultAdd = await UserModel({
+    const resultSave = await UserModel({
         account: req.body.account,
         password: hashPassword,
     }).save()
-    console.log(resultAdd)
+    console.log(resultSave)
 
     // -- 4.建立資料夾
-    console.log('add user step3: create folder')
-    if(resultAdd) folderCreate(resultAdd._id) // 建立資料夾
+    console.log('add user step4: create folder')
+    if(resultSave) {
+        // 建立資料夾
+        folderCreate(resultSave._id)
+        // 初始化git
+        gitInit(resultSave._id)
+    }
+    
+    // -- 5.完成
+    console.log('add user step5: finish!')
 
     res.json({
-        status:!!resultAdd,
-        data:resultAdd
+        status:!!resultSave,
+        data:resultSave
     })
 })
 
@@ -79,8 +88,11 @@ router.get('/list',function(req,res){
     })
 })
 
-
-// 處理使用者詳細資料
+/**
+ * 處理使用者詳細資料
+ * @param {[Object]} params 查詢條件參數
+ * @returns {[Object]} 使用者資訊
+ */
 async function handleUserDetail(params = {}){
     // 使用者資訊
     const userInfo = {
@@ -96,13 +108,13 @@ async function handleUserDetail(params = {}){
     const ignore = {
         password:0 // 不要顯示password這個欄位
     }
-    // 用exec沒辦法同步，改用then
-    await UserModel.findOne(params,ignore).then((result)=>{
-        userInfo.status = !!result // 設定狀態
-        if(!result) return 
-        userInfo.data = result // 將查詢結果放到data中
-    })
+    const resultFindOne = await UserModel.findOne(params,ignore).exec()
+    console.log(resultFindOne)
     // 將使用者訊回傳
+    if(resultFindOne){
+        userInfo.status = !!resultFindOne
+        userInfo.data = resultFindOne
+    }
     return userInfo
 }
 

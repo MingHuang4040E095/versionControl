@@ -1,7 +1,17 @@
 const cmd = require('node-cmd') //https://www.npmjs.com/package/node-cmd
+
+/**
+ * 初始化git
+ * @param {[String]} userID 使用者id
+ */
+function gitInit(userID){
+    const init = cmd.runSync(`cd ${__dirname}/file/${userID}/ & git init`)
+    return init
+}
+
 /**
  * commit檔案
- * @param {*提交訊息} message 
+ * @param {[String]} message 提交訊息
  */
 function gitCommit(message){
     cmd.runSync(`cd ${__dirname}/uploadImage/ & git add .`)
@@ -16,8 +26,8 @@ function gitCommit(message){
 
 /**
  * 切換commit節點
- * @param {*哈希值} hash 
- * @return {*執行結果} true or false 
+ * @param {[String]} hash  哈希值
+ * @return {[Boolean]} true or false 執行結果
  */
 function gitCheckout(hash){
     if(!hash) return false
@@ -29,8 +39,8 @@ function gitCheckout(hash){
 
 /**
  * 取得該分支的最後一個commit的hash值
- * @param {*分支名稱} branchName 
- * @returns {hash值}
+ * @param {[String]} branchName 分支名稱
+ * @returns {[String]} hash值
  */
 function gitGetHashBranchLast(branchName = 'master'){
     // 最後一筆commit的hash
@@ -42,7 +52,7 @@ function gitGetHashBranchLast(branchName = 'master'){
 
 /**
  * 取得目前commit點位的hash值
- * @returns {hash值}
+ * @returns {[String]} hash值
  */
 function gitGetHashHead(){
     const currentCommitHash = cmd.runSync(
@@ -51,5 +61,5 @@ function gitGetHashHead(){
     return currentCommitHash
 }
 
-module.exports = {gitCommit,gitCheckout,gitGetHashBranchLast,gitGetHashHead}
+module.exports = {gitInit,gitCommit,gitCheckout,gitGetHashBranchLast,gitGetHashHead}
 // export {gitCommit,gitCheckout}
