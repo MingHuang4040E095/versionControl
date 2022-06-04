@@ -26,31 +26,44 @@ function folderCreate(folderName){
 }
 
 // 新增使用者
-router.post('/add',function(req,res){
-    console.log(req.body)
-    //雜湊
-    bcrypt.hash(req.body.password, 11, (err, hash) => {
-        if(err){ 
-            console.log(err)
-            res.json({
-                status: false
-            })
-        }else{
-            UserModel({
-                account: req.body.account,
-                password: hash,
-            }).save((err, result) => {
-                console.log(result)
-                let status = err ? false : true
+router.post('/add',async function(req,res){
+    // -- 1.先搜尋有沒有相同帳號
+    console.log('add user step1: check')
+    const params = {
+        account: req.body.account
+    }
+    const resultCheck = await handleUserDetail(params)
+    // 如果帳號已經存在
+    if(resultCheck.status){
+        return res.json({
+            status:false,
+            data:null,
+            message:'帳號已經存在'
+        })
+    }
+    console.log(resultCheck)
 
-                if(status) folderCreate(result._id) // 建立資料夾
-                res.json({
-                    status: status,
-                    data:result
-                })
-            });
-        }
-    });
+    // -- 2.密碼雜湊
+    console.log('add user step2: hash password')
+    const hashPassword = await bcrypt.hash(req.body.password, 11);
+    console.log(hashPassword)
+
+    // -- 3.新增使用者
+    console.log('add user step3: add user')
+    const resultAdd = await UserModel({
+        account: req.body.account,
+        password: hashPassword,
+    }).save()
+    console.log(resultAdd)
+
+    // -- 4.建立資料夾
+    console.log('add user step3: create folder')
+    if(resultAdd) folderCreate(resultAdd._id) // 建立資料夾
+
+    res.json({
+        status:!!resultAdd,
+        data:resultAdd
+    })
 })
 
 // 查詢使用者
@@ -64,32 +77,45 @@ router.get('/list',function(req,res){
             data: err ? [] : result,
         })
     })
-    // UserModel.find().exec(function(err,result){
-    //     res.json({
-    //         status:err?false:true,
-    //         data: err? [] : result
-    //     })
-    // })
 })
+
+
+// 處理使用者詳細資料
+async function handleUserDetail(params = {}){
+    // 使用者資訊
+    const userInfo = {
+        status:false,
+        data: {
+            account: "",
+            dateCreated: "",
+            __v: 0,
+            _id: "",
+        }
+    }
+    // 要忽略的屬性
+    const ignore = {
+        password:0 // 不要顯示password這個欄位
+    }
+    // 用exec沒辦法同步，改用then
+    await UserModel.findOne(params,ignore).then((result)=>{
+        userInfo.status = !!result // 設定狀態
+        if(!result) return 
+        userInfo.data = result // 將查詢結果放到data中
+    })
+    // 將使用者訊回傳
+    return userInfo
+}
 
 // 查詢使用者詳細資料
-router.get('/detail/userID=:userID',function(req,res){
-    console.log(req.params)
-    UserModel.findOne({
+router.get('/detail/userID=:userID',async (req,res)=>{
+    const params = {
         _id:req.params.userID
-    },{
-        password:0 // 不要顯示password這個欄位
-    }).exec(function(err,result){
-        console.log(result)
-        res.json({
-            status:err?false:true,
-            data: result
-        })
-    })
+    }
+    const result = await handleUserDetail(params)
+    return res.json(result)
 })
 
-
-
-
-
-module.exports = router
+module.exports = {
+    router,
+    handleUserDetail
+}

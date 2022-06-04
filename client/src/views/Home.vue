@@ -172,6 +172,8 @@
 </template>
 <script>
 import moment from "moment";
+const easyFormData = require("@syuminghuang/easyformdata");
+import axios from "axios";
 export default {
   name: "Home",
   props: {

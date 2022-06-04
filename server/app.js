@@ -21,7 +21,7 @@ const fileRouter = require('./router/file.js') //設定api路由 圖片相關的
 app.use('/file', fileRouter)
 
 const userRouter = require('./router/user.js') //設定api路由 圖片相關的api統一使用 /user
-app.use('/user',userRouter)
+app.use('/user',userRouter.router)
 
 app.listen(3000, () => {
     console.log('啟動')

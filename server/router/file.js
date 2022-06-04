@@ -1,6 +1,8 @@
 const express = require('express')
 const router = express.Router()
-const moment = require('moment')
+const moment = require('moment') // 時間相關套件
+const userRouter = require('./user.js') //設定api路由 圖片相關的api統一使用 /user
+// const fs = require('fs') // 檔案相關套件
 const {gitCommit,gitCheckout} = require('../gitDirectives.js')
 //-------------------- 資料庫 ----------------------
 const mongoose = require('mongoose')
@@ -8,13 +10,14 @@ const Schema = mongoose.Schema
 
 const SomeModelSchema = new Schema({
     name: { type: String, required: true }, //檔名
-    fileName: { type: String, required: true }, //加時戳檔名
-    binary: { type: Buffer }, //圖片檔
+    // fileName: { type: String, required: true }, //加時戳檔名
+    folderName: { type: String, required: true }, // 資料夾名稱
+    // binary: { type: Buffer }, //圖片檔
     size: { type: Number, required: true }, //檔案大小
     type: { type: String, required: true }, //檔案類型
     dateUpload: { type: Date, required: true }, //上傳時間
     dateUpdated: { type: Date }, //更新時間
-    gitHash: { type: Array }, //git hash值
+    gitHash: { type: String, required: true }, //git hash值
 })
 // 這邊的files是資料表名稱
 const SomeModel = mongoose.model('files', SomeModelSchema)
@@ -23,18 +26,17 @@ const SomeModel = mongoose.model('files', SomeModelSchema)
 //npm i multer node-cmd
 // const cmd = require('node-cmd') //https://www.npmjs.com/package/node-cmd
 const multer = require('multer')
-let storage = multer.diskStorage({
-    // // 設定檔案存取位置
-    destination: function (req, file, cb) {
-        console.log(req)
-        cb(null, './uploadImage/')
-    },
-    // 設定檔案命名方式
-    filename: function (req, file, cb) {
-        // Date.now() + '-' +
-        cb(null, file.originalname)
-    },
-})
+// let storage = multer.diskStorage({
+//     // // 設定檔案存取位置
+//     destination: function (req, file, cb) {
+//         cb(null, './uploadImage/')
+//     },
+//     // 設定檔案命名方式
+//     filename: function (req, file, cb) {
+//         // Date.now() + '-' +
+//         cb(null, file.originalname)
+//     },
+// })
 
 let upload = multer({
     // dest: 'uploadImage/',
@@ -43,6 +45,7 @@ let upload = multer({
         fileSize: 5000000, //5MB
     },
     fileFilter(req, file, cb) {
+        // console.log(file)
         // 只接受三種圖片格式
         let fileName = file.originalname.toLowerCase()
         if (!fileName.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG)$/)) {
@@ -50,7 +53,17 @@ let upload = multer({
         }
         cb(null, true)
     },
-    storage, //如果有設定 storage file的Buffer就會消失
+    storage: multer.diskStorage({
+        // // 設定檔案存取位置
+        destination: function (req, file, cb) {
+            cb(null, './uploadImage/')
+        },
+        // 設定檔案命名方式
+        filename: function (req, file, cb) {
+            // Date.now() + '-' +
+            cb(null, file.originalname)
+        },
+    }), //如果有設定 storage file的Buffer就會消失
 }).single('file') //接收單一檔案
 // .array('file',12) //最多接收12個名為file的檔案
 // .fields([{ name: 'avatar', maxCount: 1 }, { name: 'gallery', maxCount: 8 }]) //接收名為 avatar 和 gallery 欄位的檔案，分別接受最多 1 個和 8 個檔案
@@ -92,8 +105,6 @@ router.get('/list/page=:page&limit=:limit', function (req, res) {
         { $limit: limit },
         { $sort : { 'dateUpload' : 1} }
     ]).exec(function(err,result){
-        console.log(result)
-        console.log(err)
         res.json({
             status: err ? false : true,
             data: err ? [] : result,
@@ -101,26 +112,39 @@ router.get('/list/page=:page&limit=:limit', function (req, res) {
     })
 })
 
+// 查詢使用者的資料夾
+function getFolderName(req, res,next){
+    console.log('getFolderName')
+    console.log(userRouter)
+    const userInfo = userRouter.handleUserDetail(req.params)
+    console.log(userInfo)
+    // userRouter.handleUserDetail(req.params).then(result=>{
+    //     console.log(result)
+    // })
+    next()
+}
+
 //----------------------- 上傳圖片 ------------------------------------
-router.post('/upload', upload, function (req, res) {
+router.post('/upload',getFolderName, upload, function (req, res) {
+    // console.log(req.file)
     //先去找是否有相同檔名
     // SomeModel.findOne({ name: req.file.originalname }).exec(function (err, result) {
 
     // })
-
+    console.log('upload')
     SomeModel({
         name: req.file.originalname, //檔名
-        fileName: req.file.filename, //加時戳檔名
-        binary: req.file.buffer, //圖片
+        // fileName: req.file.filename, //加時戳檔名
+        // binary: req.file.buffer, //圖片
         size: req.file.size, //檔案大小
         type: req.file.mimetype, //檔案類型
         dateUpload: moment(new Date()).format('YYYY-MM-DD hh:mm:ss'), //上傳日期
     }).save(function (err, result) {
-        console.log(result)
+        // console.log(err)
         if (!err) {
             // gitCommit('upload', result)
             let message = `upload ${result._id}-${result.name}`
-            gitCommit(message)
+            let gitlog = gitCommit(message)
         }
         res.json({
             status: err ? false : true,
@@ -137,7 +161,6 @@ function deleteFile(url, name) {
     if (fs.existsSync(url)) {
         //有找到路徑
         files = fs.readdirSync(url) //取得底下文件
-        console.log(files)
         files.forEach((file) => {
             let curPath = path.join(url, file)
             if (file.indexOf(name) > -1) {
@@ -152,34 +175,73 @@ function deleteFile(url, name) {
     return status
 }
 
+
+// // 搜尋目標檔案
+// function searchTargetFile(name){
+//     return SomeModel.find({ name: name }).exec(function(err,result){
+//         return err ? [] : result
+//     })
+// }
+
 //刪除圖片
 router.delete('/delete', function (req, res) {
-    let fileID = ''
-    let fileName = ''
-    SomeModel.findOne({ _id: req.query._id }).exec(function (err, result) {
-        console.log(result)
-        fileID = result._id
-        fileName = result.fileName
-        if (fileID && fileName) {
-            //如果fileID && fileName都有拿到
-            SomeModel.deleteOne({ _id: fileID }, function (err) {
-                let deleteStatus = false
-                if (!err) {
-                    deleteStatus = deleteFile('./uploadImage/', fileName)
-                    let message = `delete ${fileID}-${fileName}`
-                    gitCommit(message)
-                }
-                res.json({
-                    status: deleteStatus ? true : false,
-                })
-            })
-        } else {
-            //刪除失敗
-            res.json({
-                status: false,
-            })
-        }
+    let _id = req.query._id
+    let name = req.query.name
+    // SomeModel.findOne({ _id: req.query._id }).exec(function (err, result) {
+    //     console.log(result)
+    //     fileID = result._id
+    //     fileName = result.fileName
+
+    //     if (fileID && fileName) {
+    //         //如果fileID && fileName都有拿到
+    //         SomeModel.deleteOne({ _id: fileID }, function (err) {
+    //             let deleteStatus = false
+    //             if (!err) {
+    //                 deleteStatus = deleteFile('./uploadImage/', fileName)
+    //                 let message = `delete ${fileID}-${fileName}`
+    //                 gitCommit(message)
+    //             }
+    //             res.json({
+    //                 status: deleteStatus ? true : false,
+    //             })
+    //         })
+    //     } else {
+    //         //刪除失敗
+    //         res.json({
+    //             status: false,
+    //         })
+    //     }
+    // })
+
+    SomeModel.deleteOne({ _id: _id }, function (err) {
+        let deleteStatus = false
+
+        // if (!err) {
+        //     deleteStatus = deleteFile('./uploadImage/', fileName)
+        //     let message = `delete ${fileID}-${fileName}`
+        //     gitCommit(message)
+        // }
+        
+        SomeModel.find({ name: name }).exec(function(err,result){
+            console.log(result)
+
+            if(result.length){
+                //如果還有紀錄
+                
+            }else{
+                //如果已經沒有紀錄，就刪除檔案
+                deleteStatus = deleteFile('./uploadImage/', result.fileName)
+                // let message = `delete ${fileID}-${fileName}`
+                // gitCommit(message)
+            }
+        })
+
+        res.json({
+            status: deleteStatus ? true : false,
+        })
     })
+
+   
 })
 
 //下載檔案
