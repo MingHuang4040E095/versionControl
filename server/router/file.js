@@ -116,9 +116,16 @@ const fileFilter = async (req, file, cb) => {
         cb(new Error('請上傳圖片'))
     }
     // 判斷是否有相同檔案
-    const files = await fs.readdirSync(`./file/${userID}/`) || []
+    let files = []
+    try {
+        files = await fs.readdirSync(`./file/${userID}/`)
+    } catch(err){
+        console.log(err)
+    }
+    // const files = await fs.readdirSync(`./file/${userID}/`) || []
     const isExist = files.includes(fileName) // 是否存在
     file.isExist = isExist // 在file裡面添加isExist屬性
+    console.log(isExist)
 
     // 如果不存在，就幫他建個資料夾&git
     if(!isExist){
