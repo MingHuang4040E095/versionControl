@@ -63,7 +63,7 @@ router.post('/add',async function(req,res){
         // 建立資料夾
         folderCreate(resultSave._id)
         // 初始化git
-        gitInit(resultSave._id)
+        gitInit(`${resultSave._id}/`)
     }
     
     // -- 5.完成

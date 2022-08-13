@@ -2,6 +2,14 @@
   <section>
     <!-- <svg viewbox="0 0 1920 1080" id="gitInterface"></svg> -->
     <div class="text-h4 font-weight-bold mb-5 title">檔案版本控制</div>
+    <v-select
+      v-model="currentUser._id"
+      :items="userList"
+      item-text="account"
+      item-value="_id"
+      label="Select"
+      @change="handleChangeAccount"
+    ></v-select>
     <div class="text-h5 mb-5 title">
       <div>account: {{ currentUser.account }}</div>
       <div>_id: {{ currentUser._id }}</div>
@@ -13,9 +21,7 @@
     ></v-file-input>
     <v-btn color="blue-grey mb-16" class="ma-2 white--text" @click="fileUpload">
       Upload
-      <v-icon right dark>
-        mdi-cloud-upload
-      </v-icon>
+      <v-icon right dark> mdi-cloud-upload </v-icon>
     </v-btn>
     <v-btn
       color="blue-grey mb-16"
@@ -149,9 +155,7 @@
               <v-icon small class="mr-2" @click="fileEdit(item)">
                 mdi-pencil
               </v-icon>
-              <v-icon small @click="fileDelete(item)">
-                mdi-delete
-              </v-icon>
+              <v-icon small @click="fileDelete(item)"> mdi-delete </v-icon>
             </td>
           </tr>
         </tbody>
@@ -168,25 +172,31 @@
         </v-btn>
       </template>
     </v-snackbar>
+    <!-- <popup></popup> -->
   </section>
 </template>
 <script>
+import Vue from "vue";
+const popup = () => import("@/components/Popup");
 import moment from "moment";
 const easyFormData = require("@syuminghuang/easyformdata");
 import axios from "axios";
 export default {
   name: "Home",
+  components: {
+    popup,
+  },
   props: {
     page: {
       type: String,
-      default: "1"
-    }
+      default: "1",
+    },
   },
   computed: {
     // 第一個使用者 - 測試用
     firstUser() {
-      return this.userList.shift();
-    }
+      return this.userList.pop();
+    },
   },
   data() {
     return {
@@ -196,20 +206,20 @@ export default {
           text: "檔案名稱",
           align: "start",
           sortable: false,
-          value: "name"
+          value: "name",
         },
         { text: "版本號", value: "version" },
         { text: "檔案大小 (kB)", value: "size" },
         { text: "檔案類型", value: "type" },
         { text: "更新日期", value: "dateUpdated" },
         { text: "上傳日期", value: "dateUpload" },
-        { text: "Actions", value: "actions", sortable: false }
+        { text: "Actions", value: "actions", sortable: false },
       ],
       fileList: [],
       file: {
         name: "", //檔名
         type: "", //檔案類型
-        size: 0 //檔案大小
+        size: 0, //檔案大小
       }, //選擇的檔案
       imgUrl: null,
 
@@ -224,14 +234,14 @@ export default {
           text: "版本",
           align: "start",
           sortable: false,
-          value: "version"
+          value: "version",
         },
         { text: "檔案大小 (kB)", value: "size" },
         {
           text: "日期",
-          value: "dateUpload"
+          value: "dateUpload",
         },
-        { text: "Actions", value: "actions", sortable: false }
+        { text: "Actions", value: "actions", sortable: false },
       ],
 
       //-------------------- 使用者相關 --------------------
@@ -239,11 +249,16 @@ export default {
       // 當前使用者
       currentUser: {
         _id: null,
-        account: ""
-      }
+        account: "",
+      },
     };
   },
   methods: {
+    // 改變帳號
+    handleChangeAccount(_id) {
+      const target = this.userList.find((user) => user._id === _id);
+      if (target) this.currentUser.account = target.account;
+    },
     //選擇上傳檔案時觸發
     selectFile(file) {
       console.log(file);
@@ -253,15 +268,17 @@ export default {
       let status = false;
       let formData = new FormData();
       console.log(this.file);
+      formData.append("userID", this.currentUser._id);
       formData.append("file", this.file);
+
       this.$http
         .post("/file/upload", formData, {
-          "Content-Type": "multipart/form-data"
+          "Content-Type": "multipart/form-data",
         })
-        .then(res => {
+        .then((res) => {
           status = res.data.status;
         })
-        .catch(err => {
+        .catch((err) => {
           console.log(err);
         })
         .finally(() => {
@@ -282,13 +299,13 @@ export default {
         .delete("/file/delete", {
           params: {
             _id: file.id,
-            name: file.name
-          }
+            name: file.name,
+          },
         })
-        .then(res => {
+        .then((res) => {
           status = res.data.status;
         })
-        .catch(err => {
+        .catch((err) => {
           console.log(err);
         })
         .finally(() => {
@@ -302,7 +319,7 @@ export default {
       //回傳格式設定為 blob
       this.$http
         .get(`/file/download/_id=${file._id}`, { responseType: "blob" })
-        .then(res => {
+        .then((res) => {
           console.log(res);
           let a = document.createElement("a");
           let url = URL.createObjectURL(res.data);
@@ -314,14 +331,14 @@ export default {
             a.remove();
           }, 5000);
         })
-        .catch(err => {
+        .catch((err) => {
           console.log(err);
         })
         .finally(() => {});
     },
     //搜尋圖片版本清單
     fileVersionList(item) {
-      this.$http.get(`/file/vsersionList/name=${item.name}`).then(res => {
+      this.$http.get(`/file/vsersionList/name=${item.name}`).then((res) => {
         // console.log(res);
         this.vsersionList = res.data.data.map((item, index, thisArray) => {
           let versionLast = thisArray.length; // 最新版
@@ -329,7 +346,7 @@ export default {
           let version = versionLast - index;
           return {
             ...item,
-            version
+            version,
           };
         });
       });
@@ -340,7 +357,7 @@ export default {
     },
 
     filesList(page = 1, limit = 5) {
-      this.$http.get(`/file/list/page=${page}&limit=${limit}`).then(res => {
+      this.$http.get(`/file/list/page=${page}&limit=${limit}`).then((res) => {
         console.log(res);
 
         this.fileList = res.data.data;
@@ -359,7 +376,7 @@ export default {
 
     //------------------------- 使用者相關methods -------------------
     getUserList() {
-      this.$http.get("/user/list").then(res => {
+      this.$http.get("/user/list").then((res) => {
         this.userList = res.data.data;
         console.log(res);
       });
@@ -367,15 +384,18 @@ export default {
 
     getUserDetail(userInfo) {
       if (!userInfo?._id) return;
-      this.$http.get(`/user/detail/userID=${userInfo._id}`).then(res => {
+      this.$http.get(`/user/detail/userID=${userInfo._id}`).then((res) => {
         this.currentUser = res.data.data;
         console.log(res);
       });
-    }
+    },
   },
   created() {
     this.filesList(this.page);
-  }
+    // // 預設中文
+    // let data = twzipcode();
+    // console.log(data);
+  },
 };
 </script>
 <style lang="scss" scoped>
